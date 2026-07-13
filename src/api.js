@@ -20,7 +20,7 @@ api.interceptors.request.use((config) => {
 
 export const endpoints = {
     //Auth-Service
-    login: (username, password) => axios.post(`${AUTH_URL}/login`, { username, password }),
+    login: (nombre, password) => axios.post(`${AUTH_URL}/login`, { nombre, password }),
     register: (userData) => api.post(`${AUTH_URL}/register`, userData),
     borrarUsuario: (id) => api.delete(`${AUTH_URL}/usuarios/${id}`),
 
