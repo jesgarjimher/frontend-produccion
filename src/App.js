@@ -1,12 +1,13 @@
 import React, { useContext, useState } from 'react';
 import Login from './components/Login';
 import Ordenes from './components/Ordenes';
-import CrearProducto from './components/CrearProducto'; // Importamos el nuevo componente
+import CrearProducto from './components/CrearProducto';
+import CatalogoProductos from './components/CatalogoProductos'; //Importamos el nuevo componente
 import { AuthContext } from './AuthContext';
 
 function App() {
   const { user, logoutUser } = useContext(AuthContext);
-  const [vistaActual, setVistaActual] = useState('ordenes'); // 'ordenes' o 'crearProducto'
+  const [vistaActual, setVistaActual] = useState('ordenes'); // 'ordenes', 'catalogo' o 'crearProducto'
 
   return (
     <div className="App" style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
@@ -28,7 +29,7 @@ function App() {
             </button>
           </div>
 
-          {/* Menú de Navegación del Taller */}
+          {/* Menú de Navegación */}
           <div style={{ marginTop: '15px', marginBottom: '20px' }}>
             <button 
               onClick={() => setVistaActual('ordenes')}
@@ -46,7 +47,24 @@ function App() {
               📋 Control de Órdenes
             </button>
 
-            {/* Mostramos la pestaña de Crear Producto solo a Calidad para mayor nitidez */}
+            {/* Pestaña para Ver el Catálogo completo */}
+            <button 
+              onClick={() => setVistaActual('catalogo')}
+              style={{ 
+                padding: '10px 20px', 
+                marginRight: '10px', 
+                cursor: 'pointer',
+                backgroundColor: vistaActual === 'catalogo' ? '#007bff' : '#e2e6ea',
+                color: vistaActual === 'catalogo' ? 'white' : 'black',
+                border: 'none',
+                borderRadius: '4px',
+                fontWeight: 'bold'
+              }}
+            >
+              📦 Catálogo de Productos
+            </button>
+
+            {/* Alta de Productos exclusiva para Calidad */}
             {user.rol === 'responsable_calidad' && (
               <button 
                 onClick={() => setVistaActual('crearProducto')}
@@ -67,6 +85,7 @@ function App() {
 
           {/* Vistas Dinámicas */}
           {vistaActual === 'ordenes' && <Ordenes />}
+          {vistaActual === 'catalogo' && <CatalogoProductos />}
           {vistaActual === 'crearProducto' && <CrearProducto />}
         </div>
       )}
