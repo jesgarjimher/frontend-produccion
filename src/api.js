@@ -35,5 +35,7 @@ export const endpoints = {
     },
     crearOrden: (orden) => api.post(FABRICACION_URL, orden),
     actualizarEstadoOrden: (id, nuevoEstado) => api.put(`${FABRICACION_URL}/${id}/estado?nuevoEstado=${nuevoEstado}`),
-    cancelarOrden: (id) => api.put(`${FABRICACION_URL}/${id}/cancelar`)
+    cancelarOrden: (id) => api.put(`${FABRICACION_URL}/${id}/cancelar`),
+
+    avanzarStockParcial: (id, cantidadProducida) => api.put(`${FABRICACION_URL}/${id}/avanzar-stock?cantidadProducida=${cantidadProducida}`),
 };

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { endpoints } from '../api';
 import { AuthContext } from '../AuthContext';
+import CrearOrdenForm from './CrearOrdenForm';
 
 const Ordenes = () => {
     const { user } = useContext(AuthContext);
@@ -9,7 +10,9 @@ const Ordenes = () => {
     const [error, setError] = useState('');
     const [mensajeExito, setMensajeExito] = useState('');
 
-    // Función para cargar las órdenes (aplica filtro si existe)
+    // Estado para guardar la cantidad parcial que escribe el usuario para cada orden
+    const [cantidadesParciales, setCantidadesParciales] = useState({});
+
     const cargarOrdenes = async () => {
         try {
             setError('');
@@ -21,25 +24,44 @@ const Ordenes = () => {
         }
     };
 
-    // Recargar las órdenes cada vez que cambie el filtro seleccionado
     useEffect(() => {
         cargarOrdenes();
     }, [filtroEstado]);
 
-    // Cambiar de estado una orden (PUT /ordenes/{id}/estado?nuevoEstado={X})
     const manejarCambioEstado = async (id, nuevoEstado) => {
         try {
             setError('');
             setMensajeExito('');
             await endpoints.actualizarEstadoOrden(id, nuevoEstado);
             setMensajeExito(`Orden #${id} actualizada a ${nuevoEstado} con éxito.`);
-            cargarOrdenes(); // Recargamos el listado para ver el cambio
+            cargarOrdenes();
         } catch (err) {
             setError(err.response?.data || 'No se pudo actualizar el estado de la orden.');
         }
     };
 
-    // Cancelar administrativamente una orden (PUT /ordenes/{id}/cancelar)
+    // NUEVA FUNCIÓN: Enviar entregas parciales de stock
+    const manejarEnvioParcial = async (id) => {
+        const cantidad = cantidadesParciales[id];
+        if (!cantidad || cantidad <= 0) {
+            setError('Por favor introduce una cantidad válida mayor a 0.');
+            return;
+        }
+
+        try {
+            setError('');
+            setMensajeExito('');
+            const response = await endpoints.avanzarStockParcial(id, cantidad);
+            setMensajeExito(response.data);
+
+            // Limpiamos el input de esa orden específica
+            setCantidadesParciales(prev => ({ ...prev, [id]: '' }));
+            cargarOrdenes();
+        } catch (err) {
+            setError(err.response?.data || 'Error al sumar el stock parcial.');
+        }
+    };
+
     const manejarCancelar = async (id) => {
         try {
             setError('');
@@ -48,7 +70,6 @@ const Ordenes = () => {
             setMensajeExito(response.data);
             cargarOrdenes();
         } catch (err) {
-            // Aquí capturamos el 403 si el operario_4 (trabajador) intenta cancelar
             setError(err.response?.data || 'No tienes permisos para cancelar órdenes.');
         }
     };
@@ -57,11 +78,11 @@ const Ordenes = () => {
         <div style={{ marginTop: '20px', fontFamily: 'sans-serif' }}>
             <h2>🛠️ Control de Órdenes de Fabricación</h2>
 
-            {/* Mensajes de feedback */}
+            <CrearOrdenForm onOrdenCreada={cargarOrdenes} />
+
             {error && <div style={{ padding: '10px', backgroundColor: '#f8d7da', color: '#721c24', borderRadius: '4px', marginBottom: '15px', fontWeight: 'bold' }}>{error}</div>}
             {mensajeExito && <div style={{ padding: '10px', backgroundColor: '#d4edda', color: '#155724', borderRadius: '4px', marginBottom: '15px', fontWeight: 'bold' }}>{mensajeExito}</div>}
 
-            {/* Selector de Filtros (Query Params) */}
             <div style={{ marginBottom: '15px' }}>
                 <label style={{ marginRight: '10px', fontWeight: 'bold' }}>Filtrar por Estado:</label>
                 <select 
@@ -77,7 +98,6 @@ const Ordenes = () => {
                 </select>
             </div>
 
-            {/* Tabla de órdenes en planta */}
             {ordenes.length === 0 ? (
                 <p>No se encontraron órdenes de fabricación en este estado.</p>
             ) : (
@@ -86,7 +106,7 @@ const Ordenes = () => {
                         <tr style={{ backgroundColor: '#f2f2f2' }}>
                             <th>ID</th>
                             <th>Código Producto</th>
-                            <th>Cantidad</th>
+                            <th>Cantidad Solicitada</th>
                             <th>Estado Actual</th>
                             <th>Acciones de Taller</th>
                             <th>Gestión</th>
@@ -113,28 +133,50 @@ const Ordenes = () => {
                                     </span>
                                 </td>
                                 <td>
-                                    {/* Botones de flujo de taller estándar (Trabajador y Responsable) */}
                                     {orden.estado === 'PENDIENTE' && (
                                         <button 
                                             onClick={() => manejarCambioEstado(orden.id, 'EN_PROCESO')}
-                                            style={{ backgroundColor: '#17a2b8', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', marginRight: '5px' }}
+                                            style={{ backgroundColor: '#17a2b8', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer' }}
                                         >
                                             Iniciar Fabricación
                                         </button>
                                     )}
+
+                                    {/* ACCIÓN PARCIAL + FINALIZAR */}
                                     {orden.estado === 'EN_PROCESO' && (
-                                        <button 
-                                            onClick={() => manejarCambioEstado(orden.id, 'TERMINADA')}
-                                            style={{ backgroundColor: '#28a745', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}
-                                        >
-                                            Finalizar y Subir Stock
-                                        </button>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                            {/* Sección de entrega parcial */}
+                                            <div style={{ display: 'flex', gap: '5px' }}>
+                                                <input 
+                                                    type="number" 
+                                                    placeholder="Cant."
+                                                    min="1"
+                                                    value={cantidadesParciales[orden.id] || ''}
+                                                    onChange={(e) => setCantidadesParciales({ ...cantidadesParciales, [orden.id]: e.target.value })}
+                                                    style={{ width: '60px', padding: '4px' }}
+                                                />
+                                                <button 
+                                                    onClick={() => manejarEnvioParcial(orden.id)}
+                                                    style={{ backgroundColor: '#ffc107', color: 'black', border: 'none', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                                                >
+                                                    + Sumar Lote
+                                                </button>
+                                            </div>
+
+                                            {/* Finalizar orden completa */}
+                                            <button 
+                                                onClick={() => manejarCambioEstado(orden.id, 'TERMINADA')}
+                                                style={{ backgroundColor: '#28a745', color: 'white', border: 'none', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer' }}
+                                            >
+                                                Finalizar Toda la Orden
+                                            </button>
+                                        </div>
                                     )}
+
                                     {orden.estado === 'TERMINADA' && <span>✅ Listo</span>}
                                     {orden.estado === 'CANCELADA' && <span style={{ color: 'gray' }}>❌ Anulada</span>}
                                 </td>
                                 <td>
-                                    {/* Botón de Cancelación Administrativa */}
                                     {orden.estado !== 'TERMINADA' && orden.estado !== 'CANCELADA' ? (
                                         <button 
                                             onClick={() => manejarCancelar(orden.id)}
