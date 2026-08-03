@@ -22,8 +22,11 @@ export const endpoints = {
     //Auth-Service
     login: (nombre, password) => axios.post(`${AUTH_URL}/login`, { nombre, password }),
     register: (userData) => api.post(`${AUTH_URL}/register`, userData),
-    borrarUsuario: (id) => api.delete(`${AUTH_URL}/usuarios/${id}`),
+    borrarUsuario: (nombre) => api.delete(`${AUTH_URL}/delete/${nombre}`),
 
+    //listar usuarios
+    listarUsuarios: () => api.get(`${AUTH_URL}/usuarios`),
+    
     // Production-Service
     listarProductos: () => api.get(PRODUCTION_URL),
     crearProducto: (producto) => api.post(PRODUCTION_URL, producto),
@@ -38,4 +41,7 @@ export const endpoints = {
     cancelarOrden: (id) => api.put(`${FABRICACION_URL}/${id}/cancelar`),
 
     avanzarStockParcial: (id, cantidadProducida) => api.put(`${FABRICACION_URL}/${id}/avanzar-stock?cantidadProducida=${cantidadProducida}`),
+
+
 };
+

@@ -5,11 +5,11 @@ import { AuthContext } from '../AuthContext';
 const GestionUsuarios = () => {
     const { user: usuarioLogueado } = useContext(AuthContext);
 
-    // Estados para la lista
+    // Estados para la tabla
     const [usuarios, setUsuarios] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loadingTabla, setLoadingTabla] = useState(true);
 
-    // Estados para el formulario de registro
+    // Estados para el formulario de nuevo usuario
     const [nombre, setNombre] = useState('');
     const [password, setPassword] = useState('');
     const [rol, setRol] = useState('trabajador');
@@ -19,7 +19,26 @@ const GestionUsuarios = () => {
     const [mensajeExito, setMensajeExito] = useState('');
     const [registrando, setRegistrando] = useState(false);
 
-    // 🔥 CONTROL DE SEGURIDAD EN FRONTEND: Solo responsable_calidad
+    // Cargar la lista de usuarios desde el backend
+    const cargarUsuarios = async () => {
+        try {
+            setLoadingTabla(true);
+            setError('');
+            const response = await endpoints.listarUsuarios();
+            setUsuarios(response.data);
+        } catch (err) {
+            console.error(err);
+            setError('Error al obtener la lista de usuarios del auth-service.');
+        } finally {
+            setLoadingTabla(false);
+        }
+    };
+
+    useEffect(() => {
+        cargarUsuarios();
+    }, []);
+
+    // CONTROL DE SEGURIDAD EN FRONTEND: Solo responsable_calidad
     if (usuarioLogueado?.rol !== 'responsable_calidad') {
         return (
             <div style={{ padding: '15px', backgroundColor: '#fff3cd', color: '#856404', borderRadius: '4px', marginTop: '20px', border: '1px solid #ffeeba' }}>
@@ -28,8 +47,6 @@ const GestionUsuarios = () => {
         );
     }
 
-    // Nota: Como no teníamos un endpoint explícito de listar todos los usuarios en auth-service,
-    // gestionamos la creación y borrado directamente por ID o mantenemos el control visual.
     const handleRegister = async (e) => {
         e.preventDefault();
         setError('');
@@ -38,22 +55,23 @@ const GestionUsuarios = () => {
 
         try {
             await endpoints.register({ nombre, password, rol });
-            setMensajeExito(`¡Usuario "${nombre}" registrado correctamente con el rol [${rol}]!`);
+            setMensajeExito(`¡Usuario "${nombre}" creado con éxito!`);
             
-            // Limpiar formulario
+            // Limpiar formulario y recargar la tabla
             setNombre('');
             setPassword('');
             setRol('trabajador');
+            cargarUsuarios();
         } catch (err) {
             console.error(err);
-            setError(err.response?.data || 'Error al registrar el usuario. Es posible que el nombre ya esté en uso.');
+            setError(err.response?.data || 'Error al registrar el usuario. Comprueba si el nombre ya existe.');
         } finally {
             setRegistrando(false);
         }
     };
 
-    const handleBorrarUsuario = async (id, nombreUsuario) => {
-        if (!window.confirm(`¿Estás seguro de que deseas eliminar al usuario "${nombreUsuario}" (ID: ${id})?`)) {
+    const handleBorrarUsuario = async (nombreUsuario) => {
+        if (!window.confirm(`¿Seguro que deseas eliminar al usuario "${nombreUsuario}"?`)) {
             return;
         }
 
@@ -61,153 +79,140 @@ const GestionUsuarios = () => {
         setMensajeExito('');
 
         try {
-            await endpoints.borrarUsuario(id);
+            // Se envía el nombre como parámetro para coincidir con /auth/delete/{nombre}
+            await endpoints.borrarUsuario(nombreUsuario);
             setMensajeExito(`Usuario "${nombreUsuario}" eliminado con éxito.`);
+            cargarUsuarios(); // Recargamos la tabla para reflejar la baja
         } catch (err) {
             console.error(err);
-            setError(err.response?.data || 'No se pudo eliminar el usuario.');
+            setError(err.response?.data || 'No se pudo eliminar al usuario.');
         }
     };
 
     return (
         <div style={{ marginTop: '20px', fontFamily: 'sans-serif' }}>
-            <h2>👥 Gestión de Personal del Taller</h2>
+            <h2>👥 Control de Usuarios y Permisos de Planta</h2>
 
-            {error && <div style={{ padding: '10px', backgroundColor: '#f8d7da', color: '#721c24', borderRadius: '4px', marginBottom: '15px' }}>{error}</div>}
-            {mensajeExito && <div style={{ padding: '10px', backgroundColor: '#d4edda', color: '#155724', borderRadius: '4px', marginBottom: '15px' }}>{mensajeExito}</div>}
+            {error && <div style={{ padding: '10px', backgroundColor: '#f8d7da', color: '#721c24', borderRadius: '4px', marginBottom: '15px', fontWeight: 'bold' }}>{error}</div>}
+            {mensajeExito && <div style={{ padding: '10px', backgroundColor: '#d4edda', color: '#155724', borderRadius: '4px', marginBottom: '15px', fontWeight: 'bold' }}>{mensajeExito}</div>}
 
-            <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap' }}>
-                
-                {/* 1. Formulario para DAR DE ALTA un nuevo usuario */}
-                <div style={{ flex: '1', minWidth: '300px', padding: '20px', border: '1px solid #ddd', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
-                    <h3 style={{ marginTop: 0, color: '#0056b3' }}>➕ Dar de Alta Nuevo Operario</h3>
-                    
-                    <form onSubmit={handleRegister}>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Nombre de Usuario:</label>
-                            <input 
-                                type="text" 
-                                value={nombre} 
-                                onChange={(e) => setNombre(e.target.value)} 
-                                required 
-                                placeholder="Ej: operario_5"
-                                style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-                            />
-                        </div>
+            {/* FORMULARIO DE ALTA */}
+            <div style={{ marginBottom: '30px', padding: '15px 20px', border: '1px solid #c3e6cb', borderRadius: '8px', backgroundColor: '#e2f0d9' }}>
+                <h3 style={{ marginTop: 0, color: '#155724' }}>➕ Registrar Nuevo Usuario</h3>
+                <form onSubmit={handleRegister} style={{ display: 'flex', gap: '15px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                    <div style={{ flex: '1', minWidth: '180px' }}>
+                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Usuario:</label>
+                        <input 
+                            type="text" 
+                            value={nombre} 
+                            onChange={(e) => setNombre(e.target.value)} 
+                            required 
+                            placeholder="Ej: operario_5"
+                            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
+                        />
+                    </div>
 
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Contraseña:</label>
-                            <input 
-                                type="password" 
-                                value={password} 
-                                onChange={(e) => setPassword(e.target.value)} 
-                                required 
-                                placeholder="••••••••"
-                                style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-                            />
-                        </div>
+                    <div style={{ flex: '1', minWidth: '180px' }}>
+                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Contraseña:</label>
+                        <input 
+                            type="password" 
+                            value={password} 
+                            onChange={(e) => setPassword(e.target.value)} 
+                            required 
+                            placeholder="••••••••"
+                            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
+                        />
+                    </div>
 
-                        <div style={{ marginBottom: '20px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Rol en Planta:</label>
-                            <select 
-                                value={rol} 
-                                onChange={(e) => setRol(e.target.value)}
-                                style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-                            >
-                                <option value="trabajador">trabajador (Operario de Taller)</option>
-                                <option value="responsable_calidad">responsable_calidad (Gestor / Supervisor)</option>
-                            </select>
-                        </div>
-
-                        <button 
-                            type="submit" 
-                            disabled={registrando}
-                            style={{ 
-                                width: '100%', 
-                                padding: '10px', 
-                                backgroundColor: '#28a745', 
-                                color: 'white', 
-                                border: 'none', 
-                                borderRadius: '4px', 
-                                fontWeight: 'bold', 
-                                cursor: 'pointer' 
-                            }}
+                    <div style={{ width: '220px' }}>
+                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Rol en Sistema:</label>
+                        <select 
+                            value={rol} 
+                            onChange={(e) => setRol(e.target.value)}
+                            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
                         >
-                            {registrando ? 'Registrando...' : 'Guardar Usuario'}
-                        </button>
-                    </form>
-                </div>
+                            <option value="trabajador">trabajador</option>
+                            <option value="responsable_calidad">responsable_calidad</option>
+                        </select>
+                    </div>
 
-                {/* 2. Sección para BORRAR usuario por ID */}
-                <div style={{ flex: '1', minWidth: '300px', padding: '20px', border: '1px solid #ddd', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
-                    <h3 style={{ marginTop: 0, color: '#dc3545' }}>🗑️ Dar de Baja Usuario por ID</h3>
-                    <p style={{ fontSize: '14px', color: '#6c757d' }}>
-                        Introduce el identificador (ID) único del usuario registrado en la base de datos para revocar su acceso.
-                    </p>
-
-                    <FormularioBorrarUsuario onBorrar={handleBorrarUsuario} />
-                </div>
-
+                    <button 
+                        type="submit" 
+                        disabled={registrando}
+                        style={{ padding: '9px 20px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
+                    >
+                        {registrando ? 'Guardando...' : 'Crear Usuario'}
+                    </button>
+                </form>
             </div>
+
+            {/* TABLA DE USUARIOS */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <h3>📋 Usuarios Registrados en la Base de Datos</h3>
+                <button 
+                    onClick={cargarUsuarios} 
+                    style={{ padding: '6px 12px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                >
+                    🔄 Recargar Tabla
+                </button>
+            </div>
+
+            {loadingTabla ? (
+                <p>Cargando lista de usuarios...</p>
+            ) : usuarios.length === 0 ? (
+                <p>No hay usuarios registrados actualmente.</p>
+            ) : (
+                <table border="1" cellPadding="10" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                    <thead>
+                        <tr style={{ backgroundColor: '#f2f2f2' }}>
+                            <th>ID</th>
+                            <th>Nombre de Usuario</th>
+                            <th>Rol Asignado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {usuarios.map((u) => {
+                            // Extraemos el nombre de usuario de forma segura
+                            const userName = u.nombre || u.username;
+                            // Extraemos el rol soportando objeto { id, nombre } o String
+                            const nombreRol = typeof u.rol === 'object' ? u.rol?.nombre : u.rol;
+
+                            return (
+                                <tr key={u.id}>
+                                    <td><strong>#{u.id}</strong></td>
+                                    <td>{userName}</td>
+                                    <td>
+                                        <span style={{ 
+                                            padding: '4px 8px', 
+                                            borderRadius: '4px', 
+                                            color: 'white',
+                                            fontWeight: 'bold',
+                                            backgroundColor: nombreRol === 'responsable_calidad' ? '#007bff' : '#6c757d'
+                                        }}>
+                                            {nombreRol}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {/* Evitamos eliminar al propio usuario en sesión */}
+                                        {userName !== usuarioLogueado.username ? (
+                                            <button 
+                                                onClick={() => handleBorrarUsuario(userName)}
+                                                style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                                            >
+                                                🗑️ Eliminar
+                                            </button>
+                                        ) : (
+                                            <span style={{ color: 'gray', fontSize: '12px' }}> (Usuario Activo)</span>
+                                        )}
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
+            )}
         </div>
-    );
-};
-
-// Subcomponente simple para capturar el ID a borrar
-const FormularioBorrarUsuario = ({ onBorrar }) => {
-    const [idBorrar, setIdBorrar] = useState('');
-    const [nombreConfirmacion, setNombreConfirmacion] = useState('');
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (idBorrar) {
-            onBorrar(idBorrar, nombreConfirmacion || `ID #${idBorrar}`);
-            setIdBorrar('');
-            setNombreConfirmacion('');
-        }
-    };
-
-    return (
-        <form onSubmit={handleSubmit} style={{ marginTop: '15px' }}>
-            <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>ID del Usuario:</label>
-                <input 
-                    type="number" 
-                    value={idBorrar} 
-                    onChange={(e) => setIdBorrar(e.target.value)} 
-                    required 
-                    placeholder="Ej: 3"
-                    style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-                />
-            </div>
-
-            <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Nombre (Opcional, para confirmación):</label>
-                <input 
-                    type="text" 
-                    value={nombreConfirmacion} 
-                    onChange={(e) => setNombreConfirmacion(e.target.value)} 
-                    placeholder="Ej: operario_2"
-                    style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-                />
-            </div>
-
-            <button 
-                type="submit" 
-                style={{ 
-                    width: '100%', 
-                    padding: '10px', 
-                    backgroundColor: '#dc3545', 
-                    color: 'white', 
-                    border: 'none', 
-                    borderRadius: '4px', 
-                    fontWeight: 'bold', 
-                    cursor: 'pointer' 
-                }}
-            >
-                Eliminar Usuario
-            </button>
-        </form>
     );
 };
 
