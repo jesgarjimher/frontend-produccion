@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { endpoints } from '../api';
 import { AuthContext } from '../AuthContext';
+import '../index.css'; // Estilos para bordes delimitados
 
 const GestionUsuarios = () => {
     const { user: usuarioLogueado } = useContext(AuthContext);
@@ -41,8 +42,11 @@ const GestionUsuarios = () => {
     // CONTROL DE SEGURIDAD EN FRONTEND: Solo responsable_calidad
     if (usuarioLogueado?.rol !== 'responsable_calidad') {
         return (
-            <div style={{ padding: '15px', backgroundColor: '#fff3cd', color: '#856404', borderRadius: '4px', marginTop: '20px', border: '1px solid #ffeeba' }}>
-                ⚠️ <strong>Acceso Restringido:</strong> Solo el <u>responsable_calidad</u> puede gestionar los usuarios del sistema.
+            <div className="alert alert-warning border-warning shadow-sm my-4 d-flex align-items-center gap-2" role="alert">
+                <span className="fs-4">⚠️</span>
+                <div>
+                    <strong>Acceso Restringido:</strong> Solo el personal con rol <u>responsable_calidad</u> puede gestionar los usuarios del sistema.
+                </div>
             </div>
         );
     }
@@ -79,10 +83,9 @@ const GestionUsuarios = () => {
         setMensajeExito('');
 
         try {
-            // Se envía el nombre como parámetro para coincidir con /auth/delete/{nombre}
             await endpoints.borrarUsuario(nombreUsuario);
             setMensajeExito(`Usuario "${nombreUsuario}" eliminado con éxito.`);
-            cargarUsuarios(); // Recargamos la tabla para reflejar la baja
+            cargarUsuarios();
         } catch (err) {
             console.error(err);
             setError(err.response?.data || 'No se pudo eliminar al usuario.');
@@ -90,127 +93,159 @@ const GestionUsuarios = () => {
     };
 
     return (
-        <div style={{ marginTop: '20px', fontFamily: 'sans-serif' }}>
-            <h2>👥 Control de Usuarios y Permisos de Planta</h2>
+        <div className="container-fluid mt-4 px-2 px-md-4">
+            <h2 className="fw-bold mb-4">Control de Usuarios y Permisos de Planta</h2>
 
-            {error && <div style={{ padding: '10px', backgroundColor: '#f8d7da', color: '#721c24', borderRadius: '4px', marginBottom: '15px', fontWeight: 'bold' }}>{error}</div>}
-            {mensajeExito && <div style={{ padding: '10px', backgroundColor: '#d4edda', color: '#155724', borderRadius: '4px', marginBottom: '15px', fontWeight: 'bold' }}>{mensajeExito}</div>}
+            {/* ALERTAS DE FEEDBACK */}
+            {error && (
+                <div className="alert alert-danger alert-dismissible fade show fw-bold mb-3" role="alert">
+                    {error}
+                </div>
+            )}
+            {mensajeExito && (
+                <div className="alert alert-success alert-dismissible fade show fw-bold mb-3" role="alert">
+                    {mensajeExito}
+                </div>
+            )}
 
-            {/* FORMULARIO DE ALTA */}
-            <div style={{ marginBottom: '30px', padding: '15px 20px', border: '1px solid #c3e6cb', borderRadius: '8px', backgroundColor: '#e2f0d9' }}>
-                <h3 style={{ marginTop: 0, color: '#155724' }}>➕ Registrar Nuevo Usuario</h3>
-                <form onSubmit={handleRegister} style={{ display: 'flex', gap: '15px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                    <div style={{ flex: '1', minWidth: '180px' }}>
-                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Usuario:</label>
-                        <input 
-                            type="text" 
-                            value={nombre} 
-                            onChange={(e) => setNombre(e.target.value)} 
-                            required 
-                            placeholder="Ej: operario_5"
-                            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
-                        />
-                    </div>
+            {/* FORMULARIO DE ALTA (TARJETA VERDE SUAVE) */}
+            <div className="card border-success-subtle shadow-sm mb-5">
+                <div className="card-header bg-success-subtle text-success-emphasis border-0 py-3">
+                    <h3 className="h5 card-title mb-0 fw-bold d-flex align-items-center justify-content-center gap-2 text-center w-100">
+                         Registrar Nuevo Usuario
+                    </h3>
+                </div>
+                <div className="card-body p-4">
+                    <form onSubmit={handleRegister}>
+                        <div className="row g-3 align-items-end">
+                            <div className="col-md-4">
+                                <label className="form-label fw-bold small text-secondary">Usuario:</label>
+                                <input 
+                                    type="text" 
+                                    className="form-control"
+                                    value={nombre} 
+                                    onChange={(e) => setNombre(e.target.value)} 
+                                    required 
+                                    placeholder="Ej: operario_5"
+                                />
+                            </div>
 
-                    <div style={{ flex: '1', minWidth: '180px' }}>
-                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Contraseña:</label>
-                        <input 
-                            type="password" 
-                            value={password} 
-                            onChange={(e) => setPassword(e.target.value)} 
-                            required 
-                            placeholder="••••••••"
-                            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
-                        />
-                    </div>
+                            <div className="col-md-4">
+                                <label className="form-label fw-bold small text-secondary">Contraseña:</label>
+                                <input 
+                                    type="password" 
+                                    className="form-control"
+                                    value={password} 
+                                    onChange={(e) => setPassword(e.target.value)} 
+                                    required 
+                                    placeholder="••••••••"
+                                />
+                            </div>
 
-                    <div style={{ width: '220px' }}>
-                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Rol en Sistema:</label>
-                        <select 
-                            value={rol} 
-                            onChange={(e) => setRol(e.target.value)}
-                            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-                        >
-                            <option value="trabajador">trabajador</option>
-                            <option value="responsable_calidad">responsable_calidad</option>
-                        </select>
-                    </div>
+                            <div className="col-md-2">
+                                <label className="form-label fw-bold small text-secondary">Rol en Sistema:</label>
+                                <select 
+                                    className="form-select"
+                                    value={rol} 
+                                    onChange={(e) => setRol(e.target.value)}
+                                >
+                                    <option value="trabajador">trabajador</option>
+                                    <option value="responsable_calidad">responsable_calidad</option>
+                                </select>
+                            </div>
 
-                    <button 
-                        type="submit" 
-                        disabled={registrando}
-                        style={{ padding: '9px 20px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
-                    >
-                        {registrando ? 'Guardando...' : 'Crear Usuario'}
-                    </button>
-                </form>
+                            <div className="col-md-2">
+                                <button 
+                                    type="submit" 
+                                    disabled={registrando}
+                                    className="btn btn-success w-100 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-1"
+                                >
+                                    {registrando ? (
+                                        <>
+                                            <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                            Guardando...
+                                        </>
+                                    ) : (
+                                        'Crear Usuario'
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
 
             {/* TABLA DE USUARIOS */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <h3>📋 Usuarios Registrados en la Base de Datos</h3>
+            <div className="d-flex justify-content-between align-items-center mb-3">
+                <h3 className="h4 fw-bold m-0">Usuarios Registrados</h3>
                 <button 
                     onClick={cargarUsuarios} 
-                    style={{ padding: '6px 12px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                    className="btn btn-secondary btn-sm fw-bold shadow-sm d-flex align-items-center gap-1"
                 >
                     🔄 Recargar Tabla
                 </button>
             </div>
 
             {loadingTabla ? (
-                <p>Cargando lista de usuarios...</p>
+                <div className="text-center my-5">
+                    <div className="spinner-border text-primary" role="status">
+                        <span className="visually-hidden">Cargando...</span>
+                    </div>
+                    <p className="mt-2 text-muted fw-bold">Cargando lista de usuarios...</p>
+                </div>
             ) : usuarios.length === 0 ? (
-                <p>No hay usuarios registrados actualmente.</p>
+                <div className="alert alert-info">
+                    No hay usuarios registrados actualmente.
+                </div>
             ) : (
-                <table border="1" cellPadding="10" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                    <thead>
-                        <tr style={{ backgroundColor: '#f2f2f2' }}>
-                            <th>ID</th>
-                            <th>Nombre de Usuario</th>
-                            <th>Rol Asignado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {usuarios.map((u) => {
-                            // Extraemos el nombre de usuario de forma segura
-                            const userName = u.nombre || u.username;
-                            // Extraemos el rol soportando objeto { id, nombre } o String
-                            const nombreRol = typeof u.rol === 'object' ? u.rol?.nombre : u.rol;
+                <div className="table-responsive shadow-sm rounded">
+                    <table className="table table-bordered table-hover align-middle tabla-usuarios mb-0">
+                        <thead className="table-dark text-center">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre de Usuario</th>
+                                <th>Rol Asignado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {usuarios.map((u) => {
+                                const userName = u.nombre || u.username;
+                                const nombreRol = typeof u.rol === 'object' ? u.rol?.nombre : u.rol;
 
-                            return (
-                                <tr key={u.id}>
-                                    <td><strong>#{u.id}</strong></td>
-                                    <td>{userName}</td>
-                                    <td>
-                                        <span style={{ 
-                                            padding: '4px 8px', 
-                                            borderRadius: '4px', 
-                                            color: 'white',
-                                            fontWeight: 'bold',
-                                            backgroundColor: nombreRol === 'responsable_calidad' ? '#007bff' : '#6c757d'
-                                        }}>
-                                            {nombreRol}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        {/* Evitamos eliminar al propio usuario en sesión */}
-                                        {userName !== usuarioLogueado.username ? (
-                                            <button 
-                                                onClick={() => handleBorrarUsuario(userName)}
-                                                style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-                                            >
-                                                🗑️ Eliminar
-                                            </button>
-                                        ) : (
-                                            <span style={{ color: 'gray', fontSize: '12px' }}> (Usuario Activo)</span>
-                                        )}
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
+                                return (
+                                    <tr key={u.id}>
+                                        <td className="text-center"><strong>#{u.id}</strong></td>
+                                        <td className="fw-semibold">{userName}</td>
+                                        
+                                        {/* ROL SIN ESTILO DE BOTÓN (TEXTO PLANO / SUAVE) */}
+                                        <td className="text-center">
+                                            <span className={`fw-bold ${nombreRol === 'responsable_calidad' ? 'text-primary' : 'text-secondary'}`}>
+                                                {nombreRol}
+                                            </span>
+                                        </td>
+
+                                        {/* ACCIONES (BOTÓN CON X) */}
+                                        <td className="text-center">
+                                            {userName !== usuarioLogueado.username ? (
+                                                <button 
+                                                    onClick={() => handleBorrarUsuario(userName)}
+                                                    className="btn btn-outline-danger btn-sm fw-bold px-3"
+                                                >
+                                                    ❌ Eliminar
+                                                </button>
+                                            ) : (
+                                                <span className="badge bg-light text-muted border px-2 py-1">
+                                                    (Usuario Activo)
+                                                </span>
+                                            )}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
             )}
         </div>
     );

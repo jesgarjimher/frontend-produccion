@@ -172,7 +172,7 @@ const Ordenes = () => {
                                     <td className="text-center">
                                         {orden.estado === 'PENDIENTE' && (
                                             <button 
-                                                className="btn btn-outline-info btn-sm fw-bold btn-taller-sm"
+                                                className="btn btn-outline-success btn-sm fw-bold btn-taller-sm"
                                                 onClick={() => manejarCambioEstado(orden.id, 'EN_PROCESO')}
                                             >
                                                 Iniciar Fabricación

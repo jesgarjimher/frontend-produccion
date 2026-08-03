@@ -12,102 +12,84 @@ function App() {
   const [vistaActual, setVistaActual] = useState('ordenes'); 
 
   return (
-    <div className="App" style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
+    <div className="App min-vh-100 bg-light">
       {!user ? (
         <Login />
       ) : (
         <div>
-          {/* Cabecera del Usuario */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #ccc', paddingBottom: '10px' }}>
-            <div>
-              <h1>🏭 Panel del Taller de Producción</h1>
-              <p>Operario activo: <strong>{user.username}</strong> | Permisos: <strong style={{ color: '#007bff' }}>{user.rol}</strong></p>
+          {/* CABECERA PRINCIPAL ESTILO NAVBAR NEGRO */}
+          <header className="bg-dark text-white py-3 px-4 mb-4 shadow-sm">
+            <div className="container-fluid d-flex justify-content-between align-items-center flex-wrap gap-3">
+              <div>
+                <h1 className="h3 mb-1 fw-bold text-white d-flex align-items-center gap-2">
+                  Sistema de Gestión
+                </h1>
+                <p className="mb-0 small text-light opacity-75">
+                  Operario activo: <strong className="text-info">{user.username}</strong> 
+                  <span className="mx-2">|</span> 
+                  Permisos: <strong className="text-info">{user.rol}</strong>
+                </p>
+              </div>
+
+              <div>
+                <button 
+                  onClick={logoutUser} 
+                  className="btn btn-danger btn-sm fw-bold px-3 py-2 shadow-sm d-flex align-items-center gap-2"
+                >
+                   Cerrar Sesión
+                </button>
+              </div>
             </div>
-            <button 
-              onClick={logoutUser} 
-              style={{ padding: '10px 15px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-            >
-              Cerrar Sesión
-            </button>
-          </div>
+          </header>
 
-          {/* Menú de Navegación */}
-          <div style={{ marginTop: '15px', marginBottom: '20px' }}>
-            <button 
-              onClick={() => setVistaActual('ordenes')}
-              style={{ 
-                padding: '10px 20px', 
-                marginRight: '10px', 
-                cursor: 'pointer',
-                backgroundColor: vistaActual === 'ordenes' ? '#007bff' : '#e2e6ea',
-                color: vistaActual === 'ordenes' ? 'white' : 'black',
-                border: 'none',
-                borderRadius: '4px',
-                fontWeight: 'bold'
-              }}
-            >
-               Control de Órdenes
-            </button>
+          {/* CONTENEDOR PRINCIPAL */}
+          <main className="container-fluid px-4" style={{ maxWidth: '1200px' }}>
+            
+            {/* MENÚ DE NAVEGACIÓN (PESTAÑAS) */}
+            <div className="d-flex flex-wrap gap-2 mb-4">
+              <button 
+                onClick={() => setVistaActual('ordenes')}
+                className={`btn fw-bold px-3 py-2 ${vistaActual === 'ordenes' ? 'btn-primary' : 'btn-outline-secondary bg-white text-dark'}`}
+              >
+                ⚙️ Control de Órdenes
+              </button>
 
-            <button 
-              onClick={() => setVistaActual('catalogo')}
-              style={{ 
-                padding: '10px 20px', 
-                marginRight: '10px', 
-                cursor: 'pointer',
-                backgroundColor: vistaActual === 'catalogo' ? '#007bff' : '#e2e6ea',
-                color: vistaActual === 'catalogo' ? 'white' : 'black',
-                border: 'none',
-                borderRadius: '4px',
-                fontWeight: 'bold'
-              }}
-            >
-              Catálogo de Productos
-            </button>
+              <button 
+                onClick={() => setVistaActual('catalogo')}
+                className={`btn fw-bold px-3 py-2 ${vistaActual === 'catalogo' ? 'btn-primary' : 'btn-outline-secondary bg-white text-dark'}`}
+              >
+                📦 Catálogo de Productos
+              </button>
 
-            {/* Opciones exclusivas para Responsable de Calidad */}
-            {user.rol === 'responsable_calidad' && (
-              <>
-                <button 
-                  onClick={() => setVistaActual('crearProducto')}
-                  style={{ 
-                    padding: '10px 20px', 
-                    marginRight: '10px', 
-                    cursor: 'pointer',
-                    backgroundColor: vistaActual === 'crearProducto' ? '#007bff' : '#e2e6ea',
-                    color: vistaActual === 'crearProducto' ? 'white' : 'black',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  ➕ Alta de Productos
-                </button>
+              {/* Opciones exclusivas para Responsable de Calidad */}
+              {user.rol === 'responsable_calidad' && (
+                <>
+                  <button 
+                    onClick={() => setVistaActual('crearProducto')}
+                    className={`btn fw-bold px-3 py-2 ${vistaActual === 'crearProducto' ? 'btn-primary' : 'btn-outline-secondary bg-white text-dark'}`}
+                  >
+                    ➕ Alta de Productos
+                  </button>
 
-                {/*Pestaña de Gestión de Usuarios */}
-                <button 
-                  onClick={() => setVistaActual('usuarios')}
-                  style={{ 
-                    padding: '10px 20px', 
-                    cursor: 'pointer',
-                    backgroundColor: vistaActual === 'usuarios' ? '#007bff' : '#e2e6ea',
-                    color: vistaActual === 'usuarios' ? 'white' : 'black',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  👥 Usuarios
-                </button>
-              </>
-            )}
-          </div>
+                  <button 
+                    onClick={() => setVistaActual('usuarios')}
+                    className={`btn fw-bold px-3 py-2 ${vistaActual === 'usuarios' ? 'btn-primary' : 'btn-outline-secondary bg-white text-dark'}`}
+                  >
+                    👥 Usuarios
+                  </button>
+                </>
+              )}
+            </div>
 
-          {/* Vistas Dinámicas */}
-          {vistaActual === 'ordenes' && <Ordenes />}
-          {vistaActual === 'catalogo' && <CatalogoProductos />}
-          {vistaActual === 'crearProducto' && <CrearProducto />}
-          {vistaActual === 'usuarios' && <GestionUsuarios />}
+            {/* VISTAS DINÁMICAS */}
+            <div className="bg-white p-3 p-md-4 rounded shadow-sm border">
+              {vistaActual === 'ordenes' && <Ordenes />}
+              {vistaActual === 'catalogo' && <CatalogoProductos />}
+              {vistaActual === 'crearProducto' && <CrearProducto />}
+              {vistaActual === 'usuarios' && <GestionUsuarios />}
+            </div>
+
+          </main>
         </div>
       )}
     </div>

@@ -50,3 +50,70 @@
   padding: 4px 8px !important;
   white-space: nowrap;
 }
+
+
+
+/* ===================================================
+   TABLA DE CATÁLOGO DE PRODUCTOS - ESTILOS MANTENIDOS
+   =================================================== */
+
+/* Bordes verticales en todas las celdas y alineación idéntica a Órdenes */
+.tabla-productos th,
+.tabla-productos td {
+  padding: 14px 12px !important;
+  vertical-align: middle !important;
+  border: 1px solid #dee2e6 !important; /* Bordes verticales y horizontales definidos */
+}
+
+/* Efecto hover suave */
+.tabla-productos tbody tr {
+  transition: background-color 0.2s ease-in-out;
+}
+
+/* Transparencias opcionales por estado de stock */
+.tabla-productos tbody tr.stock-agotado td {
+  background-color: rgba(220, 53, 69, 0.08) !important; /* Rojo muy suave */
+}
+
+.tabla-productos tbody tr.stock-bajo td {
+  background-color: rgba(255, 193, 7, 0.08) !important; /* Amarillo muy suave */
+}
+
+/* ===================================================
+   ADAPTABILIDAD RESPONSIVE (Tablets y Móviles)
+   =================================================== */
+@media (max-width: 768px) {
+  .tabla-productos th,
+  .tabla-productos td {
+    padding: 10px 8px !important;
+    font-size: 0.88rem;
+  }
+}
+
+
+/* ===================================================
+   TABLA DE GESTIÓN DE USUARIOS
+   =================================================== */
+
+/* Bordes verticales delimitados y alineación vertical */
+.tabla-usuarios th,
+.tabla-usuarios td {
+  padding: 12px 14px !important;
+  vertical-align: middle !important;
+  border: 1px solid #dee2e6 !important;
+}
+
+.tabla-usuarios tbody tr {
+  transition: background-color 0.2s ease-in-out;
+}
+
+/* ===================================================
+   ADAPTABILIDAD RESPONSIVE
+   =================================================== */
+@media (max-width: 768px) {
+  .tabla-usuarios th,
+  .tabla-usuarios td {
+    padding: 10px 8px !important;
+    font-size: 0.88rem;
+  }
+}
