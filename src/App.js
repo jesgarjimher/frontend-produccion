@@ -2,12 +2,13 @@ import React, { useContext, useState } from 'react';
 import Login from './components/Login';
 import Ordenes from './components/Ordenes';
 import CrearProducto from './components/CrearProducto';
-import CatalogoProductos from './components/CatalogoProductos'; //Importamos el nuevo componente
+import CatalogoProductos from './components/CatalogoProductos';
 import { AuthContext } from './AuthContext';
+import GestionUsuarios from './components/GestionUsuarios'; 
 
 function App() {
   const { user, logoutUser } = useContext(AuthContext);
-  const [vistaActual, setVistaActual] = useState('ordenes'); // 'ordenes', 'catalogo' o 'crearProducto'
+  const [vistaActual, setVistaActual] = useState('ordenes'); 
 
   return (
     <div className="App" style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
@@ -44,10 +45,9 @@ function App() {
                 fontWeight: 'bold'
               }}
             >
-              📋 Control de Órdenes
+               Control de Órdenes
             </button>
 
-            {/* Pestaña para Ver el Catálogo completo */}
             <button 
               onClick={() => setVistaActual('catalogo')}
               style={{ 
@@ -61,25 +61,44 @@ function App() {
                 fontWeight: 'bold'
               }}
             >
-              📦 Catálogo de Productos
+              Catálogo de Productos
             </button>
 
-            {/* Alta de Productos exclusiva para Calidad */}
+            {/* Opciones exclusivas para Responsable de Calidad */}
             {user.rol === 'responsable_calidad' && (
-              <button 
-                onClick={() => setVistaActual('crearProducto')}
-                style={{ 
-                  padding: '10px 20px', 
-                  cursor: 'pointer',
-                  backgroundColor: vistaActual === 'crearProducto' ? '#007bff' : '#e2e6ea',
-                  color: vistaActual === 'crearProducto' ? 'white' : 'black',
-                  border: 'none',
-                  borderRadius: '4px',
-                  fontWeight: 'bold'
-                }}
-              >
-                ➕ Alta de Productos
-              </button>
+              <>
+                <button 
+                  onClick={() => setVistaActual('crearProducto')}
+                  style={{ 
+                    padding: '10px 20px', 
+                    marginRight: '10px', 
+                    cursor: 'pointer',
+                    backgroundColor: vistaActual === 'crearProducto' ? '#007bff' : '#e2e6ea',
+                    color: vistaActual === 'crearProducto' ? 'white' : 'black',
+                    border: 'none',
+                    borderRadius: '4px',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  ➕ Alta de Productos
+                </button>
+
+                {/*Pestaña de Gestión de Usuarios */}
+                <button 
+                  onClick={() => setVistaActual('usuarios')}
+                  style={{ 
+                    padding: '10px 20px', 
+                    cursor: 'pointer',
+                    backgroundColor: vistaActual === 'usuarios' ? '#007bff' : '#e2e6ea',
+                    color: vistaActual === 'usuarios' ? 'white' : 'black',
+                    border: 'none',
+                    borderRadius: '4px',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  👥 Usuarios
+                </button>
+              </>
             )}
           </div>
 
@@ -87,6 +106,7 @@ function App() {
           {vistaActual === 'ordenes' && <Ordenes />}
           {vistaActual === 'catalogo' && <CatalogoProductos />}
           {vistaActual === 'crearProducto' && <CrearProducto />}
+          {vistaActual === 'usuarios' && <GestionUsuarios />}
         </div>
       )}
     </div>
