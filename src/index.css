@@ -1,13 +1,52 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* ===================================================
+   TABLA DE ÓRDENES - ESTILOS Y BORDES VERTICALES
+   =================================================== */
+
+/* Bordes verticales en todas las celdas y alineación */
+.tabla-ordenes th,
+.tabla-ordenes td {
+  padding: 12px 10px !important;
+  vertical-align: middle !important;
+  border: 1px solid #dee2e6 !important; /* Bordes verticales y horizontales definidos */
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* 🟢 FILAS TERMINADAS: Aplica transparencia directamente a los TD */
+.tabla-ordenes tbody tr.estado-terminada td {
+  background-color: rgba(40, 167, 69, 0.15) !important;
+}
+
+.tabla-ordenes tbody tr.estado-terminada:hover td {
+  background-color: rgba(40, 167, 69, 0.25) !important;
+}
+
+/* 🔴 FILAS CANCELADAS: Aplica transparencia directamente a los TD */
+.tabla-ordenes tbody tr.estado-cancelada td {
+  background-color: rgba(220, 53, 69, 0.15) !important;
+}
+
+.tabla-ordenes tbody tr.estado-cancelada:hover td {
+  background-color: rgba(220, 53, 69, 0.25) !important;
+}
+
+/* Contenedor compacto para los botones de la celda de Taller */
+.acciones-taller-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 170px;
+  margin: 0 auto;
+}
+
+/* Input numérico ajustado */
+.input-parcial {
+  max-width: 65px !important;
+  text-align: center;
+  font-size: 0.85rem !important;
+}
+
+/* Ajustes de tamaño para botones dentro de la tabla */
+.btn-taller-sm {
+  font-size: 0.8rem !important;
+  padding: 4px 8px !important;
+  white-space: nowrap;
 }

@@ -5,6 +5,7 @@ import CrearProducto from './components/CrearProducto';
 import CatalogoProductos from './components/CatalogoProductos';
 import { AuthContext } from './AuthContext';
 import GestionUsuarios from './components/GestionUsuarios'; 
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
   const { user, logoutUser } = useContext(AuthContext);

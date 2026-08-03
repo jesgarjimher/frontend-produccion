@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { endpoints } from '../api';
 import { AuthContext } from '../AuthContext';
 import CrearOrdenForm from './CrearOrdenForm';
+import '../index.css';
 
 const Ordenes = () => {
     const { user } = useContext(AuthContext);
@@ -10,7 +11,7 @@ const Ordenes = () => {
     const [error, setError] = useState('');
     const [mensajeExito, setMensajeExito] = useState('');
 
-    // Estado para guardar la cantidad parcial que escribe el usuario para cada orden
+    // Estado para la cantidad parcial por cada orden
     const [cantidadesParciales, setCantidadesParciales] = useState({});
 
     const cargarOrdenes = async () => {
@@ -40,7 +41,6 @@ const Ordenes = () => {
         }
     };
 
-    // NUEVA FUNCIÓN: Enviar entregas parciales de stock
     const manejarEnvioParcial = async (id) => {
         const cantidad = cantidadesParciales[id];
         if (!cantidad || cantidad <= 0) {
@@ -54,7 +54,6 @@ const Ordenes = () => {
             const response = await endpoints.avanzarStockParcial(id, cantidad);
             setMensajeExito(response.data);
 
-            // Limpiamos el input de esa orden específica
             setCantidadesParciales(prev => ({ ...prev, [id]: '' }));
             cargarOrdenes();
         } catch (err) {
@@ -74,133 +73,178 @@ const Ordenes = () => {
         }
     };
 
+    // Clase CSS según estado para la fila
+    const obtenerClaseFila = (estado) => {
+        if (estado === 'TERMINADA') return 'fila-orden estado-terminada';
+        if (estado === 'CANCELADA') return 'fila-orden estado-cancelada';
+        return 'fila-orden';
+    };
+
+    // Color del Badge de estado
+    const obtenerClaseBadge = (estado) => {
+        switch (estado) {
+            case 'PENDIENTE': return 'bg-warning text-dark';
+            case 'EN_PROCESO': return 'bg-info text-white';
+            case 'TERMINADA': return 'bg-success text-white';
+            case 'CANCELADA': return 'bg-danger text-white';
+            default: return 'bg-secondary text-white';
+        }
+    };
+
     return (
-        <div style={{ marginTop: '20px', fontFamily: 'sans-serif' }}>
-            <h2>🛠️ Control de Órdenes de Fabricación</h2>
+        <div className="container-fluid mt-4 px-2 px-md-4 font-sans">
+            <h2 className="mb-4 fw-bold">🛠️ Control de Órdenes de Fabricación</h2>
 
             <CrearOrdenForm onOrdenCreada={cargarOrdenes} />
 
-            {error && <div style={{ padding: '10px', backgroundColor: '#f8d7da', color: '#721c24', borderRadius: '4px', marginBottom: '15px', fontWeight: 'bold' }}>{error}</div>}
-            {mensajeExito && <div style={{ padding: '10px', backgroundColor: '#d4edda', color: '#155724', borderRadius: '4px', marginBottom: '15px', fontWeight: 'bold' }}>{mensajeExito}</div>}
+            {/* FEEDBACK */}
+            {error && <div className="alert alert-danger alert-dismissible fade show fw-bold mt-3" role="alert">{error}</div>}
+            {mensajeExito && <div className="alert alert-success alert-dismissible fade show fw-bold mt-3" role="alert">{mensajeExito}</div>}
 
-            <div style={{ marginBottom: '15px' }}>
-                <label style={{ marginRight: '10px', fontWeight: 'bold' }}>Filtrar por Estado:</label>
-                <select 
-                    value={filtroEstado} 
-                    onChange={(e) => setFiltroEstado(e.target.value)}
-                    style={{ padding: '6px', borderRadius: '4px' }}
-                >
-                    <option value="">TODAS LAS ÓRDENES</option>
-                    <option value="PENDIENTE">PENDIENTES</option>
-                    <option value="EN_PROCESO">EN PROCESO</option>
-                    <option value="TERMINADA">TERMINADAS</option>
-                    <option value="CANCELADA">CANCELADAS</option>
-                </select>
+            {/* FILTRO DE ESTADO ESTILIZADO */}
+            <div className="row my-4 align-items-center">
+                <div className="col-12 col-sm-8 col-md-5 col-lg-4">
+                    <label className="form-label fw-bold mb-1">Filtrar por Estado:</label>
+                    <select 
+                        className="form-select form-select-md shadow-sm border-secondary-subtle"
+                        value={filtroEstado} 
+                        onChange={(e) => setFiltroEstado(e.target.value)}
+                    >
+                        <option value="">TODAS LAS ÓRDENES</option>
+                        <option value="PENDIENTE">PENDIENTES</option>
+                        <option value="EN_PROCESO">EN PROCESO</option>
+                        <option value="TERMINADA">TERMINADAS</option>
+                        <option value="CANCELADA">CANCELADAS</option>
+                    </select>
+                </div>
             </div>
 
+            {/* TABLA DE ÓRDENES */}
             {ordenes.length === 0 ? (
-                <p>No se encontraron órdenes de fabricación en este estado.</p>
+                <div className="alert alert-info">No se encontraron órdenes de fabricación en este estado.</div>
             ) : (
-                <table border="1" cellPadding="10" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                    <thead>
-                        <tr style={{ backgroundColor: '#f2f2f2' }}>
+            <div className="table-responsive shadow-sm rounded">
+                <table className="table table-bordered table-hover align-middle tabla-ordenes mb-0">
+                    <thead className="table-dark text-center">
+                        <tr>
                             <th>ID</th>
                             <th>Código Producto</th>
                             <th>Cantidad Solicitada</th>
+                            <th>Progreso Real</th>
                             <th>Estado Actual</th>
                             <th>Acciones de Taller</th>
                             <th>Gestión</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {ordenes.map((orden) => (
-                            <tr key={orden.id}>
-                                <td><strong>#{orden.id}</strong></td>
-                                <td>{orden.codigoProducto}</td>
-                                <td>{orden.cantidad} unidades</td>
-                                <td>
-                                    <strong>{orden.cantidadProducida || 0}</strong> / {orden.cantidad} unidades
-                                    {/* Pequeña barra visual opcional si está en proceso */}
-                                    {orden.estado === 'EN_PROCESO' && (
-                                        <div style={{ fontSize: '11px', color: '#6c757d', marginTop: '3px' }}>
-                                            Progreso: {Math.round(((orden.cantidadProducida || 0) / orden.cantidad) * 100)}%
-                                        </div>
-                                    )}
-                                </td>
-                                <td>
-                                    <span style={{ 
-                                        padding: '4px 8px', 
-                                        borderRadius: '4px', 
-                                        color: 'white',
-                                        fontWeight: 'bold',
-                                        backgroundColor: 
-                                            orden.estado === 'PENDIENTE' ? '#ffc107' :
-                                            orden.estado === 'EN_PROCESO' ? '#17a2b8' :
-                                            orden.estado === 'TERMINADA' ? '#28a745' : '#dc3545'
-                                    }}>
-                                        {orden.estado}
-                                    </span>
-                                </td>
-                                <td>
-                                    {orden.estado === 'PENDIENTE' && (
-                                        <button 
-                                            onClick={() => manejarCambioEstado(orden.id, 'EN_PROCESO')}
-                                            style={{ backgroundColor: '#17a2b8', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer' }}
-                                        >
-                                            Iniciar Fabricación
-                                        </button>
-                                    )}
+                        {ordenes.map((orden) => {
+                            const porcentaje = Math.round(((orden.cantidadProducida || 0) / orden.cantidad) * 100);
 
-                                    {/* ACCIÓN PARCIAL + FINALIZAR */}
-                                    {orden.estado === 'EN_PROCESO' && (
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                            {/* Sección de entrega parcial */}
-                                            <div style={{ display: 'flex', gap: '5px' }}>
-                                                <input 
-                                                    type="number" 
-                                                    placeholder="Cant."
-                                                    min="1"
-                                                    value={cantidadesParciales[orden.id] || ''}
-                                                    onChange={(e) => setCantidadesParciales({ ...cantidadesParciales, [orden.id]: e.target.value })}
-                                                    style={{ width: '60px', padding: '4px' }}
-                                                />
+                            return (
+                                <tr key={orden.id} className={obtenerClaseFila(orden.estado)}>
+                                    <td className="text-center"><strong>#{orden.id}</strong></td>
+                                    <td className="fw-semibold">{orden.codigoProducto}</td>
+                                    <td className="text-center">{orden.cantidad} unidades</td>
+                                    
+                                    {/* PROGRESO REAL */}
+                                    <td className="text-center">
+                                        <div><strong>{orden.cantidadProducida || 0}</strong> / {orden.cantidad} unids.</div>
+                                        {orden.estado === 'EN_PROCESO' && (
+                                            <div className="progress mt-1" style={{ height: '10px' }}>
+                                                <div 
+                                                    className="progress-bar progress-bar-striped progress-bar-animated bg-info" 
+                                                    role="progressbar" 
+                                                    style={{ width: `${porcentaje}%` }}
+                                                ></div>
+                                            </div>
+                                        )}
+                                    </td>
+
+                                    {/* BADGE DE ESTADO */}
+                                    <td className="text-center">
+                                        <span className={`badge ${obtenerClaseBadge(orden.estado)} fs-6 px-2 py-1`}>
+                                            {orden.estado}
+                                        </span>
+                                    </td>
+
+                                    {/* ACCIONES DE TALLER (ALINEADO Y REDISEÑADO) */}
+                                    <td className="text-center">
+                                        {orden.estado === 'PENDIENTE' && (
+                                            <button 
+                                                className="btn btn-outline-info btn-sm fw-bold btn-taller-sm"
+                                                onClick={() => manejarCambioEstado(orden.id, 'EN_PROCESO')}
+                                            >
+                                                Iniciar Fabricación
+                                            </button>
+                                        )}
+
+                                        {orden.estado === 'EN_PROCESO' && (
+                                            <div className="acciones-taller-box">
+                                                <div className="input-group input-group-sm">
+                                                    <input 
+                                                        type="number"
+                                                        placeholder="Cant."
+                                                        min="1"
+                                                        className="form-control input-parcial"
+                                                        value={cantidadesParciales[orden.id] || ''}
+                                                        onChange={(e) => setCantidadesParciales({ 
+                                                            ...cantidadesParciales, 
+                                                            [orden.id]: e.target.value 
+                                                        })}
+                                                    />
+                                                    <button 
+                                                        className="btn btn-warning btn-taller-sm fw-bold text-dark"
+                                                        onClick={() => manejarEnvioParcial(orden.id)}
+                                                    >
+                                                        + Lote
+                                                    </button>
+                                                </div>
+
+                                                {/* BOTÓN EN_PROCESO VERDE OUTLINE MÁS PEQUEÑO Y COMPACTO */}
                                                 <button 
-                                                    onClick={() => manejarEnvioParcial(orden.id)}
-                                                    style={{ backgroundColor: '#ffc107', color: 'black', border: 'none', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                                                    className="btn btn-outline-success btn-sm fw-bold btn-taller-sm"
+                                                    onClick={() => manejarCambioEstado(orden.id, 'TERMINADA')}
                                                 >
-                                                    + Sumar Lote
+                                                    ✅ Finalizar Orden
                                                 </button>
                                             </div>
+                                        )}
 
-                                            {/* Finalizar orden completa */}
+                                        {orden.estado === 'TERMINADA' && <span className="text-success fw-bold">OK</span>}
+                                        {orden.estado === 'CANCELADA' && <span className="text-muted fw-bold">❌ Anulada</span>}
+                                    </td>
+
+                                    {/* GESTIÓN */}
+                                    <td className="text-center">
+                                        {orden.estado === 'TERMINADA' ? (
+                                            <span className="text-success fw-bold">OK</span>
+                                        ) : orden.estado === 'CANCELADA' ? (
+                                            <span className="text-muted">Sin acciones</span>
+                                        ) : (
+                                            <span className="text-primary fw-bold">En curso</span>
+                                        )}
+                                    </td>
+
+                                    {/* ACCIONES (BOTÓN CANCELAR) */}
+                                    <td className="text-center">
+                                        {orden.estado !== 'TERMINADA' && orden.estado !== 'CANCELADA' ? (
                                             <button 
-                                                onClick={() => manejarCambioEstado(orden.id, 'TERMINADA')}
-                                                style={{ backgroundColor: '#28a745', color: 'white', border: 'none', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer' }}
+                                                className="btn btn-outline-danger btn-sm fw-bold btn-taller-sm"
+                                                onClick={() => manejarCancelar(orden.id)}
                                             >
-                                                Finalizar Toda la Orden
+                                                🚫 Cancelar
                                             </button>
-                                        </div>
-                                    )}
-
-                                    {orden.estado === 'TERMINADA' && <span>✅ Listo</span>}
-                                    {orden.estado === 'CANCELADA' && <span style={{ color: 'gray' }}>❌ Anulada</span>}
-                                </td>
-                                <td>
-                                    {orden.estado !== 'TERMINADA' && orden.estado !== 'CANCELADA' ? (
-                                        <button 
-                                            onClick={() => manejarCancelar(orden.id)}
-                                            style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}
-                                        >
-                                            Cancelar Orden
-                                        </button>
-                                    ) : (
-                                        <span style={{ color: 'gray' }}>Sin acciones</span>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
+                                        ) : (
+                                            <span className="text-muted">Sin acciones</span>
+                                        )}
+                                    </td>
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </table>
+            </div>
             )}
         </div>
     );
