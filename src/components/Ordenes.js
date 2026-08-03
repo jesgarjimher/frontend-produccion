@@ -119,6 +119,15 @@ const Ordenes = () => {
                                 <td>{orden.codigoProducto}</td>
                                 <td>{orden.cantidad} unidades</td>
                                 <td>
+                                    <strong>{orden.cantidadProducida || 0}</strong> / {orden.cantidad} unidades
+                                    {/* Pequeña barra visual opcional si está en proceso */}
+                                    {orden.estado === 'EN_PROCESO' && (
+                                        <div style={{ fontSize: '11px', color: '#6c757d', marginTop: '3px' }}>
+                                            Progreso: {Math.round(((orden.cantidadProducida || 0) / orden.cantidad) * 100)}%
+                                        </div>
+                                    )}
+                                </td>
+                                <td>
                                     <span style={{ 
                                         padding: '4px 8px', 
                                         borderRadius: '4px', 
