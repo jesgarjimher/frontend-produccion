@@ -16,14 +16,9 @@ const Login = ({ onLoginSuccess }) => {
         setLoading(true);
 
         try {
-            // Llamamos al microservicio auth-service usando tu objeto api.js
             const response = await endpoints.login(username, password);
-            
-            // Asumiendo que tu auth-service devuelve un objeto con { token, username, rol }
-            // Si solo devuelve el string del token, la lógica cambia levemente.
             const { token, rol } = response.data; 
 
-            // Guardamos en el contexto global
             loginUser(token, username, rol);
             
             if (onLoginSuccess) onLoginSuccess();
@@ -37,36 +32,81 @@ const Login = ({ onLoginSuccess }) => {
     };
 
     return (
-        <div style={{ maxWidth: '400px', margin: '100px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
-            <h2>Panel de Planta - Login</h2>
-            <form onSubmit={handleSubmit}>
-                <div style={{ marginBottom: '15px' }}>
-                    <label style={{ display: 'block', marginBottom: '5px' }}>Usuario:</label>
-                    <input 
-                        type="text" 
-                        value={username} 
-                        onChange={(e) => setUsername(e.target.value)} 
-                        required 
-                        style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-                    />
-                </div>
-                <div style={{ marginBottom: '15px' }}>
-                    <label style={{ display: 'block', marginBottom: '5px' }}>Contraseña:</label>
-                    <input 
-                        type="password" 
-                        value={password} 
-                        onChange={(e) => setPassword(e.target.value)} 
-                        required 
-                        style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-                    />
-                </div>
+        <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
+            <div className="card shadow-lg border-0 w-100" style={{ maxWidth: '420px' }}>
                 
-                {error && <p style={{ color: 'red', fontWeight: 'bold' }}>{error}</p>}
-                
-                <button type="submit" disabled={loading} style={{ width: '100%', padding: '10px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                    {loading ? 'Autenticando en planta...' : 'Ingresar'}
-                </button>
-            </form>
+                {/* CABECERA ESTILO NAVBAR OSCURO */}
+                <div className="card-header bg-dark text-white text-center py-3 border-0">
+                    <h2 className="h4 mb-0 fw-bold d-flex align-items-center justify-content-center gap-2">
+                        Producción ERP
+                    </h2>
+                    <small className="text-info opacity-75 fw-semibold">Sistema de Control e Inventario</small>
+                </div>
+
+                {/* CUERPO DEL FORMULARIO */}
+                <div className="card-body p-4">
+                    <h3 className="h5 text-center text-secondary mb-4 fw-bold">Iniciar Sesión</h3>
+
+                    {error && (
+                        <div className="alert alert-danger alert-dismissible fade show fw-bold small mb-3" role="alert">
+                            {error}
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSubmit}>
+                        {/* CAMPO USUARIO */}
+                        <div className="mb-3">
+                            <label className="form-label fw-bold small text-secondary">
+                                Usuario:
+                            </label>
+                            <input 
+                                type="text" 
+                                className="form-control"
+                                value={username} 
+                                onChange={(e) => setUsername(e.target.value)} 
+                                required 
+                                placeholder="Ej: jefe_calidad"
+                            />
+                        </div>
+
+                        {/* CAMPO CONTRASEÑA */}
+                        <div className="mb-4">
+                            <label className="form-label fw-bold small text-secondary">
+                                Contraseña:
+                            </label>
+                            <input 
+                                type="password" 
+                                className="form-control"
+                                value={password} 
+                                onChange={(e) => setPassword(e.target.value)} 
+                                required 
+                                placeholder="••••••••"
+                            />
+                        </div>
+
+                        {/* BOTÓN DE ACCESO */}
+                        <button 
+                            type="submit" 
+                            disabled={loading} 
+                            className="btn btn-primary w-100 fw-bold py-2 shadow-sm d-flex align-items-center justify-content-center gap-2"
+                        >
+                            {loading ? (
+                                <>
+                                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                    Autenticando en planta...
+                                </>
+                            ) : (
+                                '🔑 Ingresar'
+                            )}
+                        </button>
+                    </form>
+                </div>
+
+                {/* PIE DE TARJETA CON IDENTIDAD DE MARCA */}
+                <div className="card-footer bg-light text-center text-muted py-2 small border-0">
+                    Acceso Restringido • Personal Autorizado
+                </div>
+            </div>
         </div>
     );
 };
