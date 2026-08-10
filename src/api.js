@@ -1,8 +1,14 @@
 import axios from 'axios';
 
-const AUTH_URL = 'http://localhost:8081/auth';
-const PRODUCTION_URL = 'http://localhost:8082/productos';
-const FABRICACION_URL = 'http://localhost:8083/ordenes';
+// Si existen las variables de entorno (Vercel/Producción), las usa.
+// Si no existen (Local), usa las URLs de localhost por defecto.
+const BASE_AUTH = process.env.REACT_APP_AUTH_URL || 'http://localhost:8081';
+const BASE_PROD = process.env.REACT_APP_PRODUCTION_URL || 'http://localhost:8082';
+const BASE_FAB  = process.env.REACT_APP_FABRICACION_URL || 'http://localhost:8083';
+
+const AUTH_URL = `${BASE_AUTH}/auth`;
+const PRODUCTION_URL = `${BASE_PROD}/productos`;
+const FABRICACION_URL = `${BASE_FAB}/ordenes`;
 
 // Instancia centralizada de Axios
 const api = axios.create();
@@ -19,12 +25,12 @@ api.interceptors.request.use((config) => {
 });
 
 export const endpoints = {
-    //Auth-Service
+    // Auth-Service
     login: (nombre, password) => axios.post(`${AUTH_URL}/login`, { nombre, password }),
     register: (userData) => api.post(`${AUTH_URL}/register`, userData),
     borrarUsuario: (nombre) => api.delete(`${AUTH_URL}/delete/${nombre}`),
 
-    //listar usuarios
+    // Listar usuarios
     listarUsuarios: () => api.get(`${AUTH_URL}/usuarios`),
     
     // Production-Service
@@ -41,7 +47,4 @@ export const endpoints = {
     cancelarOrden: (id) => api.put(`${FABRICACION_URL}/${id}/cancelar`),
 
     avanzarStockParcial: (id, cantidadProducida) => api.put(`${FABRICACION_URL}/${id}/avanzar-stock?cantidadProducida=${cantidadProducida}`),
-
-
 };
-
