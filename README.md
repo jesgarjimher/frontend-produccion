@@ -1,4 +1,4 @@
-<!-- Tecnologias utilizadas en el front -->
+### Tecnologias utilizadas en el front
 Frontend
 React (Create React App / Javascript)
 
@@ -7,7 +7,7 @@ Axios (Cliente HTTP con interceptor para JWT)
 CSS Modules / Bootstrap
 
 
-<!-- Despliegue de la acplicacion completa -->
+### Despliegue de la acplicacion completa 
 
 Despliegue en Producción
 Base de Datos: Instancia desplegada en Aiven MySQL con base de datos planta_gestion.
